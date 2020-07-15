@@ -16,7 +16,9 @@ struct ContentView: View {
     @State var height = 0.0
     @State var feet = 0
     @State var inches = 0
-//    var types: [type] = []
+    @State var slot = 0
+    @State var type1 = ""
+    @State var type2 = ""
 
     func getPokemonData(id: Int) -> String {
         
@@ -40,6 +42,9 @@ struct ContentView: View {
             height = Double(pokemonResults.height) * 3.937
             feet = Int(round(height / 12.0))
             inches = Int(height.truncatingRemainder(dividingBy: 12.0))
+            type1 = pokemonResults.types[0].type.name
+            type2 = pokemonResults.types[1].type.name
+            
         } catch let err {
             print ("Json Err", err)
         }
@@ -57,17 +62,15 @@ struct ContentView: View {
             VStack {
                 Text(pokemonName.capitalized).font(.headline)
                 HStack {
-                    Text(String(format: "%.1f", weight) + " lbs").font(.subheadline)
-                    Text("|")
-                    Text(String(feet) + "\' " + String(inches) + "\"").font(.subheadline)
+                    Text(String(format: "%.1f", weight) + " lbs")
+                    Text(String(feet) + "\' " + String(inches) + "\"")
                 }
-                
-                Text(pokemonName.capitalized).font(.caption2)
+                .font(.subheadline)
+                TypeView(type1: type1, type2: type2)
             }
         }
     }
 }
-
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
