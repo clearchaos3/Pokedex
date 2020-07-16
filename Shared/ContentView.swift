@@ -20,11 +20,11 @@ struct ContentView: View {
     @State var type1 = ""
     @State var type2 = ""
 
-    func getPokemonData(id: Int) -> String {
+    func getPokemonData(id: Int){
         
         let jsonURLString = "https://pokeapi.co/api/v2/pokemon/" + String(id)
         // make URL
-        guard let url = URL(string: jsonURLString) else { return "" }
+        guard let url = URL(string: jsonURLString) else { return}
         // create a session
         URLSession.shared.dataTask(with: url) { (data, response, error) in
         // check for error
@@ -44,19 +44,16 @@ struct ContentView: View {
             inches = Int(height.truncatingRemainder(dividingBy: 12.0))
             type1 = pokemonResults.types[0].type.name
             type2 = pokemonResults.types[1].type.name
-            
         } catch let err {
             print ("Json Err", err)
         }
         // start the session
         }.resume()
-        return image
     }
-    
     
     var body: some View {
         HStack{
-            KFImage(URL(string: getPokemonData(id: dexNumber)))
+            KFImage(URL(string: image))
                 .resizable()
                 .frame(width: 100, height: 100)
             VStack {
@@ -69,6 +66,7 @@ struct ContentView: View {
                 TypeView(type1: type1, type2: type2)
             }
         }
+        .onAppear{getPokemonData(id: dexNumber)}
     }
 }
 
@@ -77,3 +75,13 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
+
+
+//PokemonJSON(id: 1,
+//            name: "bulbasaur",
+//            sprites: Pokedex.sprites(front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"),
+//            weight: 69,
+//            height: 7,
+//            types: [Pokedex.slot(slot: 1, type: Pokedex.type(name: "grass", url: "https://pokeapi.co/api/v2/type/12/")),
+//                    Pokedex.slot(slot: 2, type: Pokedex.type(name: "poison", url: "https://pokeapi.co/api/v2/type/4/"))])
