@@ -9,7 +9,7 @@ import SwiftUI
 import KingfisherSwiftUI
 
 struct ContentView: View {
-    @State var dexNumber = 1
+    @State var dexNumber = 150
     @State var pokemonName = ""
     @State var image = ""
     @State var weight = 0.0
@@ -19,7 +19,15 @@ struct ContentView: View {
     @State var slot = 0
     @State var type1 = ""
     @State var type2 = ""
-
+    @State var hp = 0
+    @State var attack = 0
+    @State var defense = 0
+    @State var specialAttack = 0
+    @State var specialDefense = 0
+    @State var speed = 0
+    @State var ability1 = ""
+    @State var ability2 = ""
+    
     func getPokemonData(id: Int){
         
         let jsonURLString = "https://pokeapi.co/api/v2/pokemon/" + String(id)
@@ -37,13 +45,32 @@ struct ContentView: View {
             let pokemonResults = try JSONDecoder().decode(PokemonJSON.self, from: data)
             image = pokemonResults.sprites.front_default
             dexNumber = pokemonResults.id
-            pokemonName = pokemonResults.name
+            pokemonName = pokemonResults.name.capitalized
             weight = Double(pokemonResults.weight) / 4.536
             height = Double(pokemonResults.height) * 3.937
             feet = Int(round(height / 12.0))
             inches = Int(height.truncatingRemainder(dividingBy: 12.0))
-            type1 = pokemonResults.types[0].type.name
-            type2 = pokemonResults.types[1].type.name
+            type1 = pokemonResults.types[0].type.name.capitalized
+            if (pokemonResults.types.count == 2){
+                type2 = pokemonResults.types[1].type.name.capitalized
+            } else {
+                type2 = ""
+            }
+            ability1 = pokemonResults.abilities[0].ability.name.capitalized
+            if (pokemonResults.abilities.count == 2){
+                ability2 = pokemonResults.abilities[1].ability.name.capitalized
+            }
+            else{
+                ability2 = ""
+            }
+            hp = pokemonResults.stats[0].base_stat
+            attack = pokemonResults.stats[1].base_stat
+            defense = pokemonResults.stats[2].base_stat
+            specialAttack = pokemonResults.stats[3].base_stat
+            specialDefense = pokemonResults.stats[4].base_stat
+            speed = pokemonResults.stats[5].base_stat
+            
+            
         } catch let err {
             print ("Json Err", err)
         }
@@ -52,21 +79,64 @@ struct ContentView: View {
     }
     
     var body: some View {
-        HStack{
-            KFImage(URL(string: image))
-                .resizable()
-                .frame(width: 100, height: 100)
+        ZStack {
+            Color(.white)
+                .edgesIgnoringSafeArea(.all)
             VStack {
-                Text(pokemonName.capitalized).font(.headline)
+                    HStack{
+                        KFImage(URL(string: image))
+                            .resizable()
+                            .frame(width: 100, height: 100)
+                            
+                        VStack {
+                            HStack {
+                                Text(pokemonName).font(.headline)
+                                Text("#" + String(dexNumber)).font(.caption)
+                            }
+                            HStack {
+                                Text(String(format: "%.1f", weight) + " lbs")
+                                Text(String(feet) + "\' " + String(inches) + "\"")
+                            }
+                            .font(.subheadline)
+                            HStack {
+                                TypeView(type: type1)
+                                TypeView(type: type2)
+                            }
+                        }
+                    }
+                
                 HStack {
-                    Text(String(format: "%.1f", weight) + " lbs")
-                    Text(String(feet) + "\' " + String(inches) + "\"")
+                    StatChart(hp: hp, attack: attack, defense: defense, specialAttack: specialAttack, specialDefense: specialDefense, speed: speed)
+                        .frame(width: 120, height: 120, alignment: .leading)
+                    VStack{
+                        Text(ability2 == "" ? "Ability" : "Abilities")
+                        Text(ability1).font(.caption)
+                        Text(ability2).font(.caption)
+                    }
+                    .frame(width: 100, height: 120, alignment: .center)
                 }
-                .font(.subheadline)
-                TypeView(type1: type1, type2: type2)
+                
+                HStack {
+                    Button(action: {
+                            dexNumber -= 1
+                            if(dexNumber < 1){
+                                dexNumber = 1
+                            }
+                            getPokemonData(id: dexNumber)
+                    }){
+                        Text("Previous")
+                    }
+                    Button(action: {
+                            dexNumber += 1
+                            getPokemonData(id: dexNumber)
+                    }){
+                        Text("Next")
+                    }
+                }
             }
+            .onAppear{getPokemonData(id: dexNumber)
         }
-        .onAppear{getPokemonData(id: dexNumber)}
+        }
     }
 }
 
@@ -75,13 +145,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-
-
-
-//PokemonJSON(id: 1,
-//            name: "bulbasaur",
-//            sprites: Pokedex.sprites(front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"),
-//            weight: 69,
-//            height: 7,
-//            types: [Pokedex.slot(slot: 1, type: Pokedex.type(name: "grass", url: "https://pokeapi.co/api/v2/type/12/")),
-//                    Pokedex.slot(slot: 2, type: Pokedex.type(name: "poison", url: "https://pokeapi.co/api/v2/type/4/"))])

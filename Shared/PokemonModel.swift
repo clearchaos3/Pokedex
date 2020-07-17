@@ -14,6 +14,8 @@ struct PokemonJSON : Decodable {
     let weight: Int
     let height: Int
     let types: [slot]
+    let stats: [stats]
+    let abilities: [abilities]
 }
 
 struct sprites : Decodable {
@@ -28,4 +30,21 @@ struct type : Decodable {
 struct slot : Decodable {
     let slot: Int
     let type: type
+}
+
+struct stat : Decodable {
+    let name: String
+}
+
+struct stats : Decodable {
+    let base_stat: Int
+    let stat : stat
+}
+
+struct abilities : Decodable {
+    let ability: ability
+}
+
+struct ability : Decodable {
+    let name: String
 }
