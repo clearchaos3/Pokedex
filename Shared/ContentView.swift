@@ -27,12 +27,13 @@ struct ContentView: View {
     @State var speed = 0
     @State var ability1 = ""
     @State var ability2 = ""
+    @State var flavorText = ""
     
     func getPokemonData(id: Int){
         
         let jsonURLString = "https://pokeapi.co/api/v2/pokemon/" + String(id)
         // make URL
-        guard let url = URL(string: jsonURLString) else { return}
+        guard let url = URL(string: jsonURLString) else { return }
         // create a session
         URLSession.shared.dataTask(with: url) { (data, response, error) in
         // check for error
@@ -78,6 +79,33 @@ struct ContentView: View {
         }.resume()
     }
     
+    func getSpeciesData(id: Int){
+        
+        let jsonURLString = "https://pokeapi.co/api/v2/pokemon-species/" + String(id)
+        // make URL
+        guard let url = URL(string: jsonURLString) else { return }
+        // create a session
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+        // check for error
+        if error != nil {
+            print(error!.localizedDescription)
+        }
+        // check for 200 OK status from dataTask
+        guard let data = data else { return }
+        do {
+            let speciesResults = try JSONDecoder().decode(SpeciesJSON.self, from: data)
+            for (index, text) in speciesResults.flavor_text_entries.enumerated() {
+                if (speciesResults.flavor_text_entries[index].language.name == "en"){
+                    flavorText = text.flavor_text.replacingOccurrences(of: "\n", with: " ")
+                }
+            }
+        } catch let err {
+            print ("Json Err", err)
+        }
+        // start the session
+        }.resume()
+    }
+    
     var body: some View {
         ZStack {
             Color(.white)
@@ -104,16 +132,17 @@ struct ContentView: View {
                             }
                         }
                     }
-                
-                HStack {
-                    StatChart(hp: hp, attack: attack, defense: defense, specialAttack: specialAttack, specialDefense: specialDefense, speed: speed)
-                        .frame(width: 120, height: 120, alignment: .leading)
+                    Text(flavorText).font(.caption)
                     VStack{
                         Text(ability2 == "" ? "Ability" : "Abilities")
                         Text(ability1).font(.caption)
                         Text(ability2).font(.caption)
                     }
                     .frame(width: 100, height: 120, alignment: .center)
+                
+                HStack {
+                    StatChart(hp: hp, attack: attack, defense: defense, specialAttack: specialAttack, specialDefense: specialDefense, speed: speed)
+                        .frame(width: 80, height: 120, alignment: .leading)
                 }
                 
                 HStack {
@@ -123,19 +152,23 @@ struct ContentView: View {
                                 dexNumber = 1
                             }
                             getPokemonData(id: dexNumber)
+                            getSpeciesData(id: dexNumber)
                     }){
                         Text("Previous")
                     }
                     Button(action: {
                             dexNumber += 1
                             getPokemonData(id: dexNumber)
+                            getSpeciesData(id: dexNumber)
                     }){
                         Text("Next")
                     }
                 }
             }
-            .onAppear{getPokemonData(id: dexNumber)
-        }
+            .onAppear{
+                getPokemonData(id: dexNumber)
+                getSpeciesData(id: dexNumber)
+            }
         }
     }
 }
